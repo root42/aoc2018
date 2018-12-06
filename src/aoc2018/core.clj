@@ -94,26 +94,28 @@
   )
 
 (defn overlap
-  [input]
-    (->> input
-         (to-claims)
-         (reduce add-claim {})
-         (vals)
-         (filter overlapping?)
+  [fabric]
+  (->> fabric
+       (vals)
+       (filter overlapping?)
+       )
+  )
+
+(defn overlapping-inches
+  [fabric]
+    (->> fabric
+         (overlap)
          (count)
      )
   )
 
-(defn non-overlap
-  [input]
-  (let [claims (to-claims input)
-        all-claims (map :id claims)
+(defn non-overlapping-ids
+  [fabric claims]
+  (let [all-claims (map :id claims)
         ]
     (remove 
-     (->> claims
-          (reduce add-claim {})
-          (vals)
-          (filter overlapping?)
+     (->> fabric
+          (overlap)
           (reduce into #{})
           )
      all-claims
@@ -128,8 +130,11 @@
     (println "1. Calibration result: " (calibrate input))
     (println "2. First duplicate: " (duplicate input))
     )
-  (let [input (read-input-squares "input-day-3.txt")]
-    (println "3.1. overlapping square inches: " (overlap input))
-    (println "3.2. non-overlapping IDs: " (non-overlap input))
+  (let [input (read-input-squares "input-day-3.txt")
+        claims (to-claims input)
+        fabric (reduce add-claim {} claims)
+        ]
+    (println "3.1. overlapping square inches: " (overlapping-inches fabric))
+    (println "3.2. non-overlapping IDs: " (non-overlapping-ids fabric claims))
     )
   )
