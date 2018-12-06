@@ -1,5 +1,6 @@
 (ns aoc2018.core
-  (:gen-class))
+  (:gen-class)
+  )
 
 (defn read-input
   [input-file]
@@ -43,7 +44,7 @@
 
 (defn split-lines-and-strip-whitespaces
   [input]
-  (map #(strip % " ") (clojure.string/split-lines input))
+  (map #(strip % "# ") (clojure.string/split-lines input))
   )
 
 (defn read-input-squares
@@ -55,22 +56,55 @@
     )
   )
 
-(defn to-coordinates
+(defn to-claims
   [input]
-  (let [orig (map (fn [s] (map #(Integer. %) (rest s))) input) ]
-    (map #(list
-           (nth % 0)
-           (nth % 1)
-           (+ (nth % 0) (nth % 2))
-           (+ (nth % 1) (nth % 3))
-           )
-         orig)
-    )
+  (->> input
+       (map (fn [s] (map #(Integer. %) s)))
+       (map #(list
+              (nth % 0)
+              (nth % 1)
+              (nth % 2)
+              (+ (nth % 1) (nth % 3))
+              (+ (nth % 2) (nth % 4))
+              )
+            )
+       (map #(zipmap [:id :left :top :right :bottom] %))
+   )
+  )
+
+(defn locations [input-square]
+  (for [row (range (:top input-square) (:bottom input-square))
+        col (range (:left input-square) (:right input-square))]
+    [row col]))
+
+(defn add-claim
+  [fabric claim]
+  (reduce
+   (fn [fabric location]
+     (update fabric location conj (:id claim))
+     )
+   fabric
+   (locations claim)
+   )
+  )
+
+(defn overlapping?
+  [location-claims]
+  (> (count location-claims) 1)
   )
 
 (defn overlap
   [input]
-  (take 10 (to-coordinates input))
+  (let [claims (to-claims input)
+        fabric {}
+        ]
+    (->> claims
+         (reduce add-claim fabric)
+         (vals)
+         (filter overlapping?)
+         (count)
+     )
+    )
   )
 
 (defn -main
