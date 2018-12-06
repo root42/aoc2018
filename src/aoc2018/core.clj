@@ -95,27 +95,23 @@
 
 (defn overlap
   [input]
-  (let [claims (to-claims input)
-        fabric {}
-        ]
-    (->> claims
-         (reduce add-claim fabric)
+    (->> input
+         (to-claims)
+         (reduce add-claim {})
          (vals)
          (filter overlapping?)
          (count)
      )
-    )
   )
 
 (defn non-overlap
   [input]
   (let [claims (to-claims input)
         all-claims (map :id claims)
-        fabric {}
         ]
     (remove 
      (->> claims
-          (reduce add-claim fabric)
+          (reduce add-claim {})
           (vals)
           (filter overlapping?)
           (reduce into #{})
