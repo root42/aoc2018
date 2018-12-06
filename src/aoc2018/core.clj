@@ -107,6 +107,24 @@
     )
   )
 
+(defn non-overlap
+  [input]
+  (let [claims (to-claims input)
+        all-claims (map :id claims)
+        fabric {}
+        ]
+    (remove 
+     (->> claims
+          (reduce add-claim fabric)
+          (vals)
+          (filter overlapping?)
+          (reduce into #{})
+          )
+     all-claims
+     )
+    )
+  )
+
 (defn -main
   "Advent of Code 2018."
   [& args]
@@ -115,6 +133,7 @@
     (println "2. First duplicate: " (duplicate input))
     )
   (let [input (read-input-squares "input-day-3.txt")]
-    (println "3. overlapping square inches: " (overlap input))
+    (println "3.1. overlapping square inches: " (overlap input))
+    (println "3.2. non-overlapping IDs: " (non-overlap input))
     )
   )
