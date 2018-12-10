@@ -123,18 +123,77 @@
     )
   )
 
+(defn read-input-guards
+  [input-file]
+  (->> input-file
+       slurp
+       clojure.string/split-lines
+       sort
+       )
+  )
+
+(defn parse-minute
+  [token]
+  nil
+  )
+
+(defn lines->guards
+  [lines]
+  (:naplog
+   (reduce (fn [acc line]
+             (let [tokens (clojure.string/split line #" ")])
+             (case (nth tokens 2) ; parse one of "Guard", "falls" or "wakes"
+               "Guard" (assoc acc :guard-id (nth tokens 3)) ; take guard id
+               "falls" (assoc acc :start (parse-minute (nth tokens 1)))
+               "wakes" (update acc :log conj
+                               (-> (select-keys acc [:guard-id :start])
+                                   (assoc :end (parse-minute (nth tokens 1))
+                                          )
+                                   )
+                               )
+               )
+             )
+           {:naplog []}
+           lines
+           )
+   )
+  )
+
+(defn guards->minutes
+  [guards]
+  nil
+  )
+
+(defn minutes->guardid-minute
+  [minutes]
+  nil
+  )
+
+(defn asleep
+  [input]
+  (->> input
+       (map lines->guards)
+       (reduce guards->minutes)
+       (reduce minutes->guardid-minute)     
+       )
+  )
+
 (defn -main
   "Advent of Code 2018."
   [& args]
-  (let [input (read-input "input.txt")]
-    (println "1. Calibration result: " (calibrate input))
-    (println "2. First duplicate: " (duplicate input))
-    )
-  (let [input (read-input-squares "input-day-3.txt")
-        claims (to-claims input)
-        fabric (reduce add-claim {} claims)
+  ;; (let [input (read-input "input.txt")]
+  ;;   (println "1. Calibration result: " (calibrate input))
+  ;;   (println "2. First duplicate: " (duplicate input))
+  ;;   )
+  ;; (let [input (read-input-squares "input-day-3.txt")
+  ;;       claims (to-claims input)
+  ;;       fabric (reduce add-claim {} claims)
+  ;;       ]
+  ;;   (println "3.1. overlapping square inches: " (overlapping-inches fabric))
+  ;;   (println "3.2. non-overlapping IDs: " (non-overlapping-ids fabric claims))
+  ;;   )
+  (let [input (read-input-guards "input-day-4.txt")
         ]
-    (println "3.1. overlapping square inches: " (overlapping-inches fabric))
-    (println "3.2. non-overlapping IDs: " (non-overlapping-ids fabric claims))
+    (println "4.1. ID of guard, minute mostly asleep: " (asleep input))
     )
   )
