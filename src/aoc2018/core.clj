@@ -125,8 +125,9 @@
 
 (defn read-input-guards
   [input-file]
-  (->> input-file
+  (-> input-file
        slurp
+       (clojure.string/replace #"[#\[\]]" "")
        clojure.string/split-lines
        sort
        )
@@ -145,11 +146,12 @@
   [lines]
   (:naplog
    (reduce (fn [acc line]
-             (let [tokens (clojure.string/split line #" ")]
+             (let [tokens (clojure.string/split line #" ")
+                   ]
                (case (nth tokens 2) ; parse one of "Guard", "falls" or "wakes"
-                 "Guard" (assoc acc :guard-id (nth tokens 3)) ; take guard id
+                 "Guard" (assoc acc :guard-id (Integer. (nth tokens 3)))
                  "falls" (assoc acc :start (parse-minute (nth tokens 1)))
-                 "wakes" (update acc :log conj
+                 "wakes" (update acc :naplog conj
                                  (-> (select-keys acc [:guard-id :start])
                                      (assoc :end (parse-minute (nth tokens 1))
                                             )
@@ -164,22 +166,29 @@
    )
   )
 
+(defn add-minutes
+  [guard-id->minutes log-entry]
+  (update guard-id->minutes (:guard-id log-entry)
+    into (range (:start log-entry) (:end log-entry))))
+
 (defn guards->minutes
   [guards]
-  nil
+  (reduce add-minutes {} guards)
   )
 
 (defn minutes->guardid-minute
   [minutes]
-  nil
+  (let [[guard-id minutes] (apply max-key (comp count val) minutes)]
+    (* guard-id (first (apply max-key val (frequencies minutes))))
+    )
   )
 
 (defn asleep
   [input]
   (->> input
-       (map lines->guards)
-       (reduce guards->minutes)
-       (reduce minutes->guardid-minute)     
+       lines->guards
+       guards->minutes
+       minutes->guardid-minute     
        )
   )
 
@@ -199,6 +208,6 @@
   ;;   )
   (let [input (read-input-guards "input-day-4.txt")
         ]
-    (println "4.1. ID of guard, minute mostly asleep: " (asleep input))
+    (println "4.1. ID of guard times minute mostly asleep: " (asleep input))
     )
   )
