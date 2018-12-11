@@ -134,23 +134,28 @@
 
 (defn parse-minute
   [token]
-  nil
+  (-> token
+       (clojure.string/split #":")
+       (last)
+       (Integer.)
+       )
   )
 
 (defn lines->guards
   [lines]
   (:naplog
    (reduce (fn [acc line]
-             (let [tokens (clojure.string/split line #" ")])
-             (case (nth tokens 2) ; parse one of "Guard", "falls" or "wakes"
-               "Guard" (assoc acc :guard-id (nth tokens 3)) ; take guard id
-               "falls" (assoc acc :start (parse-minute (nth tokens 1)))
-               "wakes" (update acc :log conj
-                               (-> (select-keys acc [:guard-id :start])
-                                   (assoc :end (parse-minute (nth tokens 1))
-                                          )
-                                   )
-                               )
+             (let [tokens (clojure.string/split line #" ")]
+               (case (nth tokens 2) ; parse one of "Guard", "falls" or "wakes"
+                 "Guard" (assoc acc :guard-id (nth tokens 3)) ; take guard id
+                 "falls" (assoc acc :start (parse-minute (nth tokens 1)))
+                 "wakes" (update acc :log conj
+                                 (-> (select-keys acc [:guard-id :start])
+                                     (assoc :end (parse-minute (nth tokens 1))
+                                            )
+                                     )
+                                 )
+                 )
                )
              )
            {:naplog []}
